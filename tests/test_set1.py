@@ -9,6 +9,18 @@ sys.path.append(os.path.join(os.environ["SPACK_ROOT"], "lib", "spack", "external
 
 from find_linux_externals import pkgfinder
 
+def test_runversion():
+    pf = pkgfinder()
+    v = pf.runversion("perl")
+    print(f"for perl got '{v}'")
+    assert(v.startswith("5."))
+
+def test_getv():
+    pf = pkgfinder()
+    v = pf.getv("perl")
+    print(f"for perl got '{v}'")
+    assert(v.startswith("5."))
+
 def test_pkgfinder_1():
     pf = pkgfinder(packagelist="packagelist1")
     pkgs = pf.find_packages({})
@@ -30,8 +42,3 @@ def test_pkgfinder_re():
     assert("mpich" in pkgs["packages"])
     assert("krb5" in pkgs["packages"])
 
-def test_runversion():
-    pf = pkgfinder()
-    v = pf.runversion("perl")
-    print(f"for perl got '{v}'")
-    assert(v.startswith("5."))
