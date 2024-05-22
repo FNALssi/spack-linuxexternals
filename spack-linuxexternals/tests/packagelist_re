@@ -1,0 +1,21 @@
+########################################################################
+# Package list format:
+#
+# Field 1: base RPM name as:
+#          a) a string.
+#          b) a POSIX search regex with substitution groups.
+#
+# Field 2: Spack package name as a string.
+#
+# Field 3: devel RPM name as:
+#          a) a string.
+#          b) a POSIX replacement regex with match placeholders.
+#          In either case, an occurrence of "$0" will be replaced by the
+#          corresponding matched base RPM name.
+#
+########################################################################
+(xorg-x11-font-utils|bdftopcf):bdftopcf:$0
+cmake|cmake[0-9]:cmake:$0
+(krb5)-libs:krb5:krb5-devel
+mpich-[0-9.]+|mpich:mpich:$0-devel
+(openssl[0-9a-z]*)-libs:openssl:$0-devel
