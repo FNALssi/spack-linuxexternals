@@ -1,0 +1,23 @@
+########################################################################
+# Package list format:
+#
+# Field 1: base RPM name as:
+#          a) a string.
+#          b) a POSIX search regex with substitution groups.
+#
+# Field 2: Spack package name as a string.
+#
+# Field 3: devel RPM name as:
+#          a) a string.
+#          b) a POSIX replacement regex with match placeholders.
+#          In either case, an occurrence of "$0" will be replaced by the
+#          corresponding matched base RPM name.
+#
+########################################################################
+gawk:gawk:$0
+gdb:gdb:$0
+gdbm:gdbm:$0-devel
+gettext:gettext:$0-devel
+git:git:$0
+gtk3:gtkplus:$0-devel
+make:gmake:$0

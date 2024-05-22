@@ -1,8 +1,8 @@
 import spack.config
 import spack.util.spack_yaml as syaml
+import spack.platforms
 import os
 import re
-import spack.platforms
     
 class pkgfinder:
     flag_not_builable = [
@@ -92,13 +92,17 @@ class pkgfinder:
        }
  
 
-    vers_re = r'^.*-([0-9][0-9]*\.[0-9.kp]*)-.*$'
+    vers_re = r'^.*?[^0-9]([0-9][0-9]*\.[0-9.kp]*)[^0-9].*$'
 
-    def __init__(self):
+    def __init__(self, packagelist = None):
         host_platform = spack.platforms.host()
         self.host_os = host_platform.operating_system('default_os')
         self.host_os = str(self.host_os)
         self.qalist = []
+        if packagelist:
+            self.packagelist = packagelist
+        else:
+            self.packagelist = __file__.replace('find_linux_externals.py','packagelist')
 
     def runversion(self, cmd):
         if cmd == "python":
@@ -117,7 +121,7 @@ class pkgfinder:
         elif cmd.find("proto") > 0:
             cmd = f"grep Version /usr/share/doc/xorgproto/{cmd}.txt"
         elif cmd.startswith("lib"):
-            cmd = f"ls -l /usr/lib*/{cmd}.* | sed -e s/.*{cmd}.[a-z]*\.//"
+            cmd = f"ls -l /usr/lib*/{cmd}.* | sed -e s/.*{cmd}.[a-z]*\\.//"
 
         with os.popen(f"{cmd} --version < /dev/null 2>&1", "r") as fin:
             data = fin.read().split('\n')
@@ -177,9 +181,9 @@ class pkgfinder:
                      break
         return res
 
-    def find_packages(self):
-        result = pkgfinder.base_packages.copy()
-        packagelist = __file__.replace('find_linux_externals.py','packagelist')
+    def find_packages(self, initial):
+        result = initial.copy()
+        result.update(pkgfinder.base_packages)
 
         gccv = self.getv("gcc") 
         if gccv:
@@ -187,7 +191,7 @@ class pkgfinder:
         else:
             comp = ""
 
-        with open(packagelist,"r") as pfile:
+        with open(self.packagelist,"r") as pfile:
             for line in pfile:
 
                 line = line.strip()
@@ -257,9 +261,16 @@ class pkgfinder:
          
          
 def find_linux_externals(args):
+
     config = spack.config.CONFIG
     filename = config.get_config_filename(args.scope, "packages") + ".new"
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+             data = syaml.load(f.read())
+        initial = data
+    else:
+        initial = {}
     pf = pkgfinder()
-    data = pf.find_packages()
+    data = pf.find_packages(initial)
     with open(filename, "w") as of:
         syaml.dump(data, of)
