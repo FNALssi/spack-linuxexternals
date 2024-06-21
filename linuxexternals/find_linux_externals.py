@@ -14,7 +14,7 @@ class pkgfinder:
         "font-util",
         "gdbm",
         "gettext",
-        "libc",
+        "glibc",
         "libfontenc",
         "libice",
         "libx11",
@@ -62,7 +62,7 @@ class pkgfinder:
        "packages": {
           "all": {
             "compiler": ["gcc", "clang"],
-            "target": "x86_64_v2",
+            "target": [ "x86_64_v2" ],
             "providers" : {
                "blas": [ "openblas" ],
                "fftw-api": [ "ftw" ] ,
@@ -70,7 +70,7 @@ class pkgfinder:
                "gl": [ "glx" ],
                "glu": [ "mesa-glu" ],
                "golang": [ "go" ],
-               "iconv": [ "libc" ],
+               "iconv": [ "glibc" ],
                "java": [ "openjdk" ],
                "jpeg": [ "libjpeg-turbo" ],
                "lapack": [ "openblas" ],
@@ -81,7 +81,7 @@ class pkgfinder:
                "mysql-client": [ "mariadb-c-client" ],
                "pbs": [ "torque" ],
                "pkgconfig": [ "pkg-config", "pkgconf" ],
-               "rpc": [ "libc" ],
+               "rpc": [ "glibc" ],
                "tbb": [ "intel-tbb-oneapi" ],
                "unwind": [ "libunwind" ],
                "uuid": [ "libuuid" ],
@@ -113,17 +113,21 @@ class pkgfinder:
                 if not l.find('config') >= 0:
                     cmd = l
         elif cmd == "autotools":
-            cmd = "automake"
+            cmd = "automake --version"
         elif cmd == "xlibtool":
-            cmd = "automake"
+            cmd = "automake --version"
+        elif cmd == "texlive":
+            cmd = "tex --version"
         elif cmd == "tcl":
             cmd = "echo info patchlevel | tclsh"
         elif cmd.find("proto") > 0:
             cmd = f"grep Version /usr/share/doc/xorgproto/{cmd}.txt"
         elif cmd.startswith("lib"):
             cmd = f"ls -l /usr/lib*/{cmd}.* | sed -e s/.*{cmd}.[a-z]*\\.//"
+        else:
+            cmd = f"{cmd} --version"
 
-        with os.popen(f"{cmd} --version < /dev/null 2>&1", "r") as fin:
+        with os.popen(f"{cmd} < /dev/null 2>&1", "r") as fin:
             data = fin.read().split('\n')
         first = ""
         for line in data:

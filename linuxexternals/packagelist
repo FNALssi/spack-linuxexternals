@@ -48,7 +48,7 @@ condor:htcondor:$0
 htgettoken:htgettoken:$0
 :hwloc:
 (krb5)-libs:krb5:krb5-devel
-glibc:libc:$0-devel
+glibc:glibc:$0-devel
 :libedit:
 libfontenc:libfontenc:$0-devel
 libICE:libice:$0-devel
