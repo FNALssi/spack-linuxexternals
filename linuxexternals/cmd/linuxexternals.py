@@ -2,6 +2,10 @@ import sys
 import spack.config
 from  spack.extensions import linuxexternals as lext
 
+description = "find many external packages on linux systems "
+section = "basic"
+level = "short"
+
 def setup_parser(subparser):
 
     scopes = spack.config.scopes()
