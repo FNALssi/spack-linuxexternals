@@ -92,7 +92,7 @@ class pkgfinder:
        }
  
 
-    vers_re = r'^.*?[^0-9]([0-9][0-9]*\.[0-9.kp]*)[^0-9].*$'
+    vers_re = r'^.*?[^0-9]([0-9][0-9]*\.[0-9.kp]*|[12][0-9]{7})[^0-9].*$'
 
     def __init__(self, packagelist = None):
         host_platform = spack.platforms.host()
@@ -267,7 +267,7 @@ class pkgfinder:
 def find_linux_externals(args):
 
     config = spack.config.CONFIG
-    filename = config.get_config_filename(args.scope, "packages") + ".new"
+    filename = config.get_config_filename(args.scope, "packages")
     if os.path.exists(filename):
         with open(filename, "r") as f:
              data = syaml.load(f.read())
