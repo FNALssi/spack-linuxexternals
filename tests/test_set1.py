@@ -39,6 +39,6 @@ def test_pkgfinder_re():
     pf = pkgfinder(packagelist="packagelist_re")
     pkgs = pf.find_packages({})
     print(repr(pkgs))
-    assert("mpich" in pkgs["packages"])
+    assert("gawk" in pkgs["packages"])
     assert("krb5" in pkgs["packages"])
 

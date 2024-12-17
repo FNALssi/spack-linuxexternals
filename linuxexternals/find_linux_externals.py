@@ -74,6 +74,7 @@ class pkgfinder:
                "java": [ "openjdk" ],
                "jpeg": [ "libjpeg-turbo" ],
                "lapack": [ "openblas" ],
+               "libc": [ "glibc" ],
                "libglx": [ "mesa+glx" ],
                "libllvm": [ "llvm" ],
                "libosmesa": [ "mesa+osmesa" ],

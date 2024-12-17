@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# mock rpm executable with fixed package list, etc.
+
+case "x$1" in
+x)     echo "Mock for rpm, fix your PATH if you're seeing this."
+       ;;
+x-qa)  cat ${0}_data/dash_qa
+       ;;
+x-q)   grep $2 ${0}_data/dash_qa
+       ;;
+x-ql)  echo /usr/lib/$2
+       echo /usr/bin/$2
+       ;;
+*)     echo "Mock for rpm, fix your PATH if you're seeing this."
+       ;;
+esac
