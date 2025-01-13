@@ -257,7 +257,7 @@ class pkgfinder:
  
                         result["packages"][spp]["externals"].append(
                             {
-                               "spec": f"{spp} @{v} {comp} os={self.host_os}", 
+                               "spec": f"{spp} @{v} os={self.host_os}", 
                                "prefix": prefix,
                                "buildable": buildable,
                            }
