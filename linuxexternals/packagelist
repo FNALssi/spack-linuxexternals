@@ -55,7 +55,7 @@ libICE:libice:$0-devel
 :libpciaccess:
 libSM:libsm:$0-devel
 libtirpc:libtirpc:$0-devel
-libtool:libtool:$0
+libtool:libtool:$0-ltdl-devel
 libuuid:libuuid:$0-devel
 libX11:libx11:$0-devel
 libXau:libxau:$0-devel
