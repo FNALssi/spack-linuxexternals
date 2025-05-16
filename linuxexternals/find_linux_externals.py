@@ -1,3 +1,4 @@
+import spack
 import spack.config
 import spack.util.spack_yaml as syaml
 import spack.platforms
@@ -191,7 +192,7 @@ class pkgfinder:
         result.update(pkgfinder.base_packages)
 
         gccv = self.getv("gcc") 
-        if gccv:
+        if gccv and spack.spack_version < "1.0.0":
             comp = "%gcc@" + gccv
         else:
             comp = ""
