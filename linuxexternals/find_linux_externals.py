@@ -4,6 +4,7 @@ import spack.util.spack_yaml as syaml
 import spack.platforms
 import os
 import re
+import sys
     
 class pkgfinder:
     flag_not_builable = [
@@ -125,7 +126,7 @@ class pkgfinder:
         elif cmd.find("proto") > 0:
             cmd = f"grep Version /usr/share/doc/xorgproto/{cmd}.txt"
         elif cmd.startswith("lib"):
-            cmd = f"ls -l /usr/lib*/{cmd}.* | sed -e s/.*{cmd}.[a-z]*\\.//"
+            cmd = f"ls -l /lib/*-gnu/{cmd}.* /usr/lib*/{cmd}.* 2>/dev/null | sed -e s/.*{cmd}.[a-z]*\\.//"
         else:
             cmd = f"{cmd} --version"
 
@@ -135,19 +136,25 @@ class pkgfinder:
         for line in data:
             if not line:
                  continue
-            if re.search("error:|for help|not found|illegal|invalid|usage:|--version|-v", line):
+            print(f"checking line {line}")
+            if re.search("error:|no such file|for help|not found|illegal|invalid|usage:|--version|-v", line):
+                 print("error...")
                  continue
             first = line
             break  
         first = re.sub(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|/).*', "", first)
         first = re.sub(cmd, "", first, flags=re.I)
         first = re.sub(pkgfinder.vers_re,'\\1', first)
+        print(f"first: {first}")
         return first
 
     def getv(self, pkg):
 
+        print(f"getv( {pkg} )")
+        sys.stdout.flush()
+
         if re.search("ubuntu", self.host_os):
-            pkgcmd = f"apt list {pkg} 2>/dev/null | grep '\[installed\]'"
+            pkgcmd = f"apt list {pkg} 2>/dev/null | grep '\\[installed'"
 
         elif re.search("almalinux|centos|fedora|rhel|scientific", self.host_os):
             pkgcmd = f"rpm -q {pkg} | tail -1 | grep -v 'is not installed'" 
@@ -159,9 +166,11 @@ class pkgfinder:
         with  os.popen(pkgcmd, "r") as pout:
             data = pout.read().strip()
 
+        print(f"pkgcmd {pkgcmd}  yeilds {data}")
+
         #print("before:" , data)
         data = re.sub(pkgfinder.vers_re,'\\1', data)
-        #print("after:" , data)
+        print("after:" , data)
 
         if not data:
             data = self.runversion(pkg)
@@ -209,12 +218,14 @@ class pkgfinder:
                 p,spp,dv = line.split(":")
                 if not p:
                     p = spp
+                print(f"looking for {p}:{spp}:{dv}...")
+                sys.stdout.flush()
 
                 #  turn p in to list pl by checking rpm -qa list
                 # -- this should have an "apt" version...
-                if p.find('[') >= 0 or p.find('|') >= 0 or p.find('(') >= 0:
+                if p.find('[') >= 0 or p.find('|') >= 0 or p.find('(') >= 0 or p.find('*') >= 0:
                     #print("regex search...") 
-                    p= '(' + p+ ')-[0-9]'
+                    p= '(' + p+ ')[/-][0-9]'
                     if not self.qalist:
                         if re.search("ubuntu", self.host_os):
                             cmd = "apt --installed list "
@@ -225,19 +236,33 @@ class pkgfinder:
                             continue
 
                         with os.popen(cmd,"r") as rpmout:
+
                            self.qualist = rpmout.read().strip().split("\n")
 
-                    pl = set([re.match(p,x).group(1) for x in self.qualist if re.match(p,x)])
-                    #print("pl is " + repr(pl))
+                        print(f"self.qualist = {self.qualist}")
+                        sys.stdout.flush()
+                           
+                    pl = []
+                    for x in self.qualist:
+                        m = re.match(p,x)
+                        if m:
+                            pl.append( m.group(1))
                     check_prefix = True
 
                 else:
                     pl = [p]
                     check_prefix = False
 
+                print("pl is " + repr(pl))
+
                 for pkg in pl:
                     dpkg = dv.replace('$0',pkg)
+                    if re.search("ubuntu", self.host_os):
+                        dpkg = dpkg.replace("-devel", "-dev")
+                    print(f"dpkg is {dpkg}")
                     v = self.getv(pkg)
+
+                    print(f"version {repr(v)}")
 
                     if not v:
                         print(f"Notice: no system-installed versions of {pkg} found (Spack package {spp})")
@@ -279,4 +304,5 @@ def find_linux_externals(args):
     pf = pkgfinder()
     data = pf.find_packages(initial)
     with open(filename, "w") as of:
+        print(f"writing {filename}")
         syaml.dump(data, of)
