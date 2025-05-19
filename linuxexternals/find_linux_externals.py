@@ -131,15 +131,15 @@ class pkgfinder:
         else:
             cmd = f"{cmd} --version"
 
-        print(f"runcmd: cmd: {cmd}")
-        sys.stdout.flush()
+        #print(f"runcmd: cmd: {cmd}")
+        #sys.stdout.flush()
         with os.popen(f"{cmd} < /dev/null 2>&1", "r") as fin:
             data = fin.read().split('\n')
         first = ""
         for line in data:
             if not line:
                  continue
-            print(f"checking line {line}")
+            #print(f"checking line {line}")
             if re.search("error:|no such file|for help|not found|illegal|invalid|usage:|--version|-v", line):
                  print("error...")
                  continue
@@ -148,12 +148,12 @@ class pkgfinder:
         first = re.sub(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|/).*', "", first)
         first = re.sub(cmd, "", first, flags=re.I)
         first = re.sub(pkgfinder.vers_re,'\\1', first)
-        print(f"first: {first}")
+        #print(f"first: {first}")
         return first
 
     def getv(self, pkg):
 
-        print(f"getv( {pkg} )")
+        #print(f"getv( {pkg} )")
         sys.stdout.flush()
 
         if re.search("ubuntu", self.host_os):
@@ -165,17 +165,17 @@ class pkgfinder:
         else:
             pkgcmd = ":"
 
-        print("pkgcmd: ", pkgcmd)
+        #print("pkgcmd: ", pkgcmd)
         sys.stdout.flush()
         with  os.popen(pkgcmd, "r") as pout:
             data = pout.read().strip()
 
-        print(f"pkgcmd {pkgcmd}  yeilds {data}")
+        #print(f"pkgcmd {pkgcmd}  yeilds {data}")
         sys.stdout.flush()
 
         #print("before:" , data)
         data = re.sub(pkgfinder.vers_re,'\\1', data)
-        print("after:" , data)
+        #print("after:" , data)
 
         if not data:
             data = self.runversion(pkg)
@@ -223,8 +223,8 @@ class pkgfinder:
                 p,spp,dv = line.split(":")
                 if not p:
                     p = spp
-                print(f"looking for {p}:{spp}:{dv}...")
-                sys.stdout.flush()
+                #print(f"looking for {p}:{spp}:{dv}...")
+                #sys.stdout.flush()
 
                 #  turn p in to list pl by checking rpm -qa list
                 # -- this should have an "apt" version...
@@ -245,14 +245,14 @@ class pkgfinder:
                            self.qalist = rpmout.read().strip().split("\n")
 
                         # print(f"self.qalist = {self.qalist}")
-                        sys.stdout.flush()
+                        # sys.stdout.flush()
                            
                     pl = []
                     for x in self.qalist:
-                        print(f"looking for {p} in {x}")
+                        # print(f"looking for {p} in {x}")
                         m = re.match(p,x,re.I)
                         if m:
-                            print("matched!")
+                            # print("matched!")
                             pl.append( m.group(1))
                     check_prefix = True
 
@@ -260,7 +260,7 @@ class pkgfinder:
                     pl = [p]
                     check_prefix = False
 
-                print("pl is " + repr(pl))
+                # print("pl is " + repr(pl))
 
                 for pkg in pl:
                     dpkg = dv.replace('$0',pkg)
@@ -270,10 +270,10 @@ class pkgfinder:
                         # the develop package for xyz3 is xyz-dev
                         dpkg = re.sub('[0-9]*-devel', '-dev', dpkg)
 
-                    print(f"dpkg is {dpkg}")
+                    # print(f"dpkg is {dpkg}")
                     v = self.getv(pkg)
 
-                    print(f"version {repr(v)}")
+                    # print(f"version {repr(v)}")
 
                     if not v:
                         print(f"Notice: no system-installed versions of {pkg} found (Spack package {spp})")
