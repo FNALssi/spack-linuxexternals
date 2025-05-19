@@ -5,6 +5,7 @@ import spack.platforms
 import os
 import re
 import sys
+import glob
     
 class pkgfinder:
     flag_not_builable = [
@@ -113,8 +114,8 @@ class pkgfinder:
             l = glob.glob("/usr/bin/python*")
             l.sort()
             for f in l:
-                if not l.find('config') >= 0:
-                    cmd = l
+                if not f.find('config') >= 0 and not f.find('tex') >= 0:
+                    cmd = f"{f} --version"
         elif cmd == "autotools":
             cmd = "automake --version"
         elif cmd == "xlibtool":
@@ -126,10 +127,12 @@ class pkgfinder:
         elif cmd.find("proto") > 0:
             cmd = f"grep Version /usr/share/doc/xorgproto/{cmd}.txt"
         elif cmd.startswith("lib"):
-            cmd = f"ls -l /lib/*-gnu/{cmd}.* /usr/lib*/{cmd}.* 2>/dev/null | sed -e s/.*{cmd}.[a-z]*\\.//"
+            cmd = f"ls -l /lib/*-gnu/ /usr/lib*/ 2>/dev/null | grep -i '/{cmd}\\.' | perl -pe 's/.*{cmd}.[a-z]*\\.//i;'"
         else:
             cmd = f"{cmd} --version"
 
+        print(f"runcmd: cmd: {cmd}")
+        sys.stdout.flush()
         with os.popen(f"{cmd} < /dev/null 2>&1", "r") as fin:
             data = fin.read().split('\n')
         first = ""
@@ -162,11 +165,13 @@ class pkgfinder:
         else:
             pkgcmd = ":"
 
-        #print("pkgcmd: ", pkgcmd)
+        print("pkgcmd: ", pkgcmd)
+        sys.stdout.flush()
         with  os.popen(pkgcmd, "r") as pout:
             data = pout.read().strip()
 
         print(f"pkgcmd {pkgcmd}  yeilds {data}")
+        sys.stdout.flush()
 
         #print("before:" , data)
         data = re.sub(pkgfinder.vers_re,'\\1', data)
@@ -179,7 +184,7 @@ class pkgfinder:
 
     def get_prefix(self, pkg):
         if re.search("ubuntu", self.host_os):
-            pkg_file_cmd = f"apt-file list {pkg} 2>/dev/null'"
+            pkg_file_cmd = f"apt-file list {pkg} 2>/dev/null"
 
         elif re.search("almalinux|centos|fedora|rhel|scientific", self.host_os):
             pkg_file_cmd =  f"rpm -ql {pkg}"
@@ -225,7 +230,7 @@ class pkgfinder:
                 # -- this should have an "apt" version...
                 if p.find('[') >= 0 or p.find('|') >= 0 or p.find('(') >= 0 or p.find('*') >= 0:
                     #print("regex search...") 
-                    p= '(' + p+ ')[/-][0-9]'
+                    p= '(' + p+ ')[/-][0-9a-z]'
                     if not self.qalist:
                         if re.search("ubuntu", self.host_os):
                             cmd = "apt --installed list "
@@ -237,15 +242,17 @@ class pkgfinder:
 
                         with os.popen(cmd,"r") as rpmout:
 
-                           self.qualist = rpmout.read().strip().split("\n")
+                           self.qalist = rpmout.read().strip().split("\n")
 
-                        print(f"self.qualist = {self.qualist}")
+                        # print(f"self.qalist = {self.qalist}")
                         sys.stdout.flush()
                            
                     pl = []
-                    for x in self.qualist:
-                        m = re.match(p,x)
+                    for x in self.qalist:
+                        print(f"looking for {p} in {x}")
+                        m = re.match(p,x,re.I)
                         if m:
+                            print("matched!")
                             pl.append( m.group(1))
                     check_prefix = True
 
@@ -257,8 +264,12 @@ class pkgfinder:
 
                 for pkg in pl:
                     dpkg = dv.replace('$0',pkg)
+                    
                     if re.search("ubuntu", self.host_os):
-                        dpkg = dpkg.replace("-devel", "-dev")
+                        # ubuntu spells it -dev, not -devel, and
+                        # the develop package for xyz3 is xyz-dev
+                        dpkg = re.sub('[0-9]*-devel', '-dev', dpkg)
+
                     print(f"dpkg is {dpkg}")
                     v = self.getv(pkg)
 
@@ -281,13 +292,15 @@ class pkgfinder:
 
                         buildable = not (spp in pkgfinder.flag_not_builable)
  
-                        result["packages"][spp]["externals"].append(
-                            {
+                        entry = {
                                "spec": f"{spp} @{v} os={self.host_os}", 
                                "prefix": prefix,
                                "buildable": buildable,
                            }
-                        )
+ 
+                        if not entry in result["packages"][spp]["externals"]:
+                            result["packages"][spp]["externals"].append(entry)
+
         return result
          
          
