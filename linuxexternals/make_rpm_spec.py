@@ -54,18 +54,18 @@ def get_yum_packages( yum_cmd ):
              if in_packages:
                 pkg, rest = line.split('.',1)
                 candidates.append(pkg)
-    print(f"get_yum_packages: yum_cmd: '{yum_cmd}' candidates: {repr(candidates)}")
+    # print(f"get_yum_packages: yum_cmd: '{yum_cmd}' candidates: {repr(candidates)}")
     return candidates
 
 def yum_expand(pat, devbits):
     yum_wc = pat
-    print(f"before: {yum_wc}")
+    #print(f"before: {yum_wc}")
     yum_wc = re.sub("\([^(]*\)\?", "*", yum_wc) 
     yum_wc = re.sub("\[[^[]*\]\*", "*", yum_wc) 
     yum_wc = re.sub("\.\*", "*", yum_wc) 
     yum_wc = re.sub(".\?", "*", yum_wc) 
     yum_wc = re.sub("[()]", "", yum_wc) 
-    print(f"after: {yum_wc}")
+    #print(f"after: {yum_wc}")
     yum_wc_devel = devbits.replace('$0',yum_wc)
     candidates = get_yum_packages(f"yum list '{yum_wc}' '{yum_wc_devel}'")
     res = []
