@@ -129,7 +129,7 @@ class pkgfinder:
         elif cmd.startswith("lib"):
             cmd = f"ls -l /lib/*-gnu/ /usr/lib*/ 2>/dev/null | grep -i '/{cmd}\\.' | perl -pe 's/.*{cmd}.[a-z]*\\.//i;'"
         else:
-            cmd = f"{cmd} --version"
+            cmd = f"{cmd} --version || {cmd} -v"
 
         #print(f"runcmd: cmd: {cmd}")
         #sys.stdout.flush()
