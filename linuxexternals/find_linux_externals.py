@@ -1,4 +1,5 @@
 import spack
+from spack import spack_version
 import spack.config
 import spack.util.spack_yaml as syaml
 import spack.platforms
@@ -295,14 +296,21 @@ class pkgfinder:
                         entry = {
                                "spec": f"{spp} @{v} os={self.host_os}", 
                                "prefix": prefix,
-                               "buildable": buildable,
                            }
  
                         if not entry in result["packages"][spp]["externals"]:
                             result["packages"][spp]["externals"].append(entry)
+                            result["packages"][spp]["buildable"] = buildable
 
+        if spack_version > "1.1" and "python" in result["packages"]:
+            # add python dependency info for python packages
+            result["packages"]["python"]["externals"][0]["id"] = "system_python"
+            python_pkgs = ("asciidoc", "cigetcert", "htgettoken")
+            for pkg in python_pkgs:
+                if pkg in result["packages"]:
+                    deps = [ { "id": "system_python", "deptypes": ["build", "run"]} ]
+                    result["packages"][pkg]["externals"][0]["dependencies"] = deps
         return result
-         
          
 def find_linux_externals(args):
 
